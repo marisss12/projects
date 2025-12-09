@@ -1,0 +1,127 @@
+from datetime import datetime, timedelta, date
+from decimal import Decimal
+
+DATE_FORMAT = '%Y-%m-%d'
+
+# Холодильник пуст:
+goods = {}
+
+def add(items, title, amount, expiration_date=None):
+    # Преобразуем expiration_date в объект date только если он не None
+    expiration_date_obj = datetime.strptime(expiration_date, '%Y-%m-%d').date() if expiration_date else None
+    
+    if title in items:
+        # Добавляем новый элемент в существующий список
+        items[title].append({
+            'amount': amount,
+            'expiration_date': expiration_date_obj
+        })
+    else:
+        # Создаем новый список для нового товара
+        items[title] = [{
+            'amount': amount,
+            'expiration_date': expiration_date_obj
+        }]
+
+# Пример использования функции add
+items = {
+    'Яйца Фабрики №1': [{'amount': Decimal('4'), 'expiration_date': datetime(2023, 7, 15).date()}]
+}
+
+add(items, 'Яйца Фабрики №1', Decimal('10'), '2023-08-01')
+add(items, 'Макароны', Decimal('5'), '2024-03-01')
+
+# Проверка результата
+print(items)
+
+def add_by_note(items, note):   
+    parts = note.split(' ')
+    
+    if len(parts) < 3:
+        title = ' '.join(parts[:-1])  # Название продукта состоит из 1/2 частей
+        amount = Decimal(parts[-1])  # Количество
+        expiration_date = None  # Нет даты истечения
+    elif len(parts) > 3:
+        title = ' '.join(parts[:-2])  # Название продукта состоит из 1/2 частей
+        amount = Decimal(parts[-2])  # Количество
+        expiration_date_str = parts[-1]
+        expiration_date = datetime.strptime(expiration_date_str, '%Y-%m-%d').date()
+    else:  # len == 3
+        title = ' '.join(parts[:-2])  # Название продукта состоит из 1/2 частей
+        amount = Decimal(parts[-2])  # Количество
+        expiration_date_str = parts[-1]
+        expiration_date = datetime.strptime(expiration_date_str, '%Y-%m-%d').date()
+
+    # Добавляем данные в словарь items
+    if title in items:
+        items[title].append({
+            'amount': amount,
+            'expiration_date': expiration_date
+        })
+    else:
+        items[title] = [{
+            'amount': amount,
+            'expiration_date': expiration_date
+        }]
+
+# Пример использования функции add_by_note
+add_by_note(goods, 'Яйца Фабрики №1 4 2023-07-15')
+add_by_note(goods, 'Макароны 4')
+# Проверка результата
+print(goods)
+
+
+def find(items, needle):
+    results = []  # Список для хранения найденных товаров
+    # Перебираем ключи словаря
+    for item in items.keys():
+        # Применяем lower() для сравнения без учета регистра
+        if needle.lower() in item.lower():
+            results.append(item)  # Добавляем найденный товар в результаты
+            
+    return results
+# Пример использования
+needle = "макароны"  # Поисковый термин
+found_items = find(goods, needle)
+print("Найденные товары:", found_items)
+
+def amount(items, needle):
+    total_amount = Decimal('0')  # Переменная для хранения общего количества
+    found_items = find(items, needle)  # Ищем товары   
+    # Суммируем количество для каждого найденного товара
+    for item in found_items:
+        for batch in items[item]:  # Перебираем партии товара
+            total_amount += batch['amount']  # Суммируем количество            
+    
+    return total_amount
+
+# Пример использования
+# Поисковый термин
+print(amount(goods, 'макароны'))
+
+
+def expire(items, in_advance_days=0):
+    today = date.today()  # Получаем сегодняшнюю дату
+    target_date = today + timedelta(days=in_advance_days)  # Вычисляем дату с учетом in_advance_days
+    expired_items = []  # Список для хранения просроченных товаров
+
+    for product, batches in items.items():
+        total_amount = Decimal('0')  # Переменная для хранения общего количества просроченного продукта
+        for batch in batches:
+            expiration_date = batch['expiration_date']
+            amount = batch['amount']
+                        # Проверяем, если срок годности не установлен (None)
+            if expiration_date is None:
+                continue
+                    # Проверяем, истек ли срок годности или истекает в указанные дни
+            if expiration_date < target_date or expiration_date == target_date:
+                total_amount += amount
+        # Если есть просроченные товары, добавляем их в результат
+        if total_amount > 0:
+            expired_items.append((product, total_amount))
+    return expired_items
+
+
+print(expire(goods))
+print(expire(goods, 1))
+print(expire(goods, 2))
