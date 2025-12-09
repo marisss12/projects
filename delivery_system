@@ -1,0 +1,76 @@
+'''Тестовые попытки'''
+
+
+# class Sorted:
+
+#     def __init__(self, weight_robots):
+#         self.weight_robots = weight_robots
+
+#     def sorted_massif(self, weight_robots):
+#         max_item = max(weight_robots)
+#         count_items = [0] * (max_item + 1)
+#         print(count_items)
+#         for item in weight_robots:
+#             count_items[item] += 1
+#         sorted_weight_robots = []
+#         for item in range(max_item + 1):
+#             sorted_weight_robots += [item] * count_items[item]
+#         return sorted_weight_robots
+    
+# weight: list = [3, 5, 3, 4]
+# massif = Sorted(weight)
+# sorted_massif = massif.sorted_massif(weight)
+
+
+# def delivery(weight_robots, limit):
+#     sorted_weight_robots = Sorted.sorted_massif( weight_robots)
+#     count_platforms = 0
+#     for item in sorted_weight_robots:
+#         while item < limit:
+#             count_platforms += 0
+#         count_platforms += 1
+#     return count_platforms
+
+
+
+# if __name__ == '__main__':
+#     weight: list = [3, 5, 3, 4]
+#     print(delivery(weight, 5))
+
+'''Ссыла на гугл-док'''
+
+# https://docs.google.com/document/d/1Xz8ObLhNZUFT_J-7mOzb3A_wUxa8sVbHSlqk2ZFvgIM/edit?tab=t.0
+
+
+from typing import List
+import sys
+
+
+def delivery(weight_robots: List[int], limit: int) -> int:
+    ''''Функция счета платформ''''
+
+    weight_robots.sort()
+    
+    left = 0  # Указатель на легкого робота
+    right = len(weight_robots) - 1  # Указатель на тяжелого робота
+    count_platforms = 0  # Счетчик платформ
+
+    while left <= right:
+        # Если легкий и тяжелый роботы помещаются на одну платформу
+        if weight_robots[left] + weight_robots[right] <= limit:
+            left += 1  # Перевозим легкого робота
+        # Перевозим тяжелого робота
+        right -= 1
+        count_platforms += 1  # Увеличиваем счетчик платформ
+
+    return count_platforms
+
+
+if __name__ == "__main__":
+    
+    input_data = sys.stdin.read().strip().split('\n')
+    weights = list(map(int, input_data[0].split()))
+    limit = int(input_data[1])
+    
+    result = delivery(weights, limit)
+    print(result)
